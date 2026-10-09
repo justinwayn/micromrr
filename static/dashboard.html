@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MicroMRR Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: #0d1117; color: #e6edf3; }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 32px 20px 64px; }
+  header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 24px; }
+  h1 { font-size: 1.6rem; } h1 span { color: #3fb950; }
+  .mode { font-size: .8rem; color: #6e7681; border: 1px solid #30363d; padding: 4px 10px; border-radius: 20px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 16px; }
+  .card .label { font-size: .75rem; color: #9aa4b2; text-transform: uppercase; letter-spacing: .05em; }
+  .card .val { font-size: 1.7rem; font-weight: 700; margin-top: 4px; }
+  .card .sub { font-size: .8rem; color: #6e7681; margin-top: 2px; }
+  .panel { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+  .panel h2 { font-size: 1rem; margin-bottom: 12px; color: #9aa4b2; }
+  table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #21262d; }
+  th { color: #6e7681; font-weight: 600; font-size: .8rem; text-transform: uppercase; }
+  .pos { color: #3fb950; } .neg { color: #f85149; } .mut { color: #9aa4b2; }
+  .banner { background: #1c2b1c; border: 1px solid #3fb950; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; }
+  .banner.paid { background: #2b211c; border-color: #d29922; }
+  #err { color: #f85149; margin-bottom: 16px; }
+  .movrow { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #21262d; }
+  svg text { fill: #6e7681; font-size: 11px; }
+  a { color: #3fb950; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Micro<span>MRR</span> dashboard</h1>
+    <span class="mode" id="mode">…</span>
+  </header>
+  <div id="err"></div>
+  <div id="banner"></div>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="panel">
+    <h2>MRR — last 30 days</h2>
+    <svg id="chart" width="100%" height="220" viewBox="0 0 900 220" preserveAspectRatio="none"></svg>
+  </div>
+
+  <div class="panel">
+    <h2>MRR movement (trailing 30 days)</h2>
+    <div id="movement"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Subscriptions</h2>
+    <table><thead><tr><th>Plan</th><th>Status</th><th style="text-align:right">MRR</th></tr></thead>
+    <tbody id="subs"></tbody></table>
+  </div>
+
+  <p style="color:#6e7681;font-size:.85rem"><a href="/">← landing</a> ·
+  Data: <span id="src"></span> · <a href="#" onclick="snapshot();return false;">record snapshot now</a></p>
+</div>
+
+<script>
+async function load() {
+  try {
+    const r = await fetch('/api/metrics');
+    const d = await r.json();
+    if (!d.ok) { document.getElementById('err').textContent = 'Error: ' + (d.error || 'unknown'); return; }
+    render(d);
+  } catch (e) {
+    document.getElementById('err').textContent = 'Could not reach API: ' + e;
+  }
+}
+function card(label, val, sub) {
+  return `<div class="card"><div class="label">${label}</div><div class="val">${val}</div><div class="sub">${sub||''}</div></div>`;
+}
+function render(d) {
+  document.getElementById('mode').textContent = d.mode + ' mode';
+  document.getElementById('src').textContent = d.mode === 'live' ? 'Stripe (read-only)' : 'demo portfolio';
+  const free = d.free_tier;
+  document.getElementById('banner').innerHTML = free
+    ? `<div class="banner">🎉 <b>Free tier</b> — ${d.mrr} of $500.00 cap. Free until you're actually making money.</div>`
+    : `<div class="banner paid">🚀 You've outgrown the free tier at ${d.mrr}! MicroMRR is $9/mo from here — paid from the revenue we helped you see.</div>`;
+
+  const m = d.movement_cents, mf = d.movement;
+  document.getElementById('cards').innerHTML =
+    card('MRR', d.mrr, d.period_days + '-day window') +
+    card('Subscribers', d.subscribers, 'paying accounts') +
+    card('ARPA', d.arpa, 'avg revenue / account') +
+    card('Revenue churn', d.churn_rate_display, 'of starting MRR') +
+    card('LTV', d.ltv, 'ARPA ÷ churn rate') +
+    card('Net MRR change', mf.net_cents, `${mf.new_cents} new · ${mf.churned_cents} churned`);
+
+  const mv = [
+    ['New MRR', mf.new_cents, 'pos'], ['Expansion', mf.expansion_cents, 'pos'],
+    ['Contraction', mf.contraction_cents, 'neg'], ['Churned', mf.churned_cents, 'neg'],
+    ['<b>Net</b>', '<b>'+mf.net_cents+'</b>', d.movement_cents.net_cents >= 0 ? 'pos' : 'neg'],
+  ];
+  document.getElementById('movement').innerHTML =
+    mv.map(x => `<div class="movrow"><span>${x[0]}</span><span class="${x[2]}">${x[1]}</span></div>`).join('');
+
+  document.getElementById('subs').innerHTML = d.subscriptions.map(s =>
+    `<tr><td>${s.plan}</td><td class="${s.status==='active'?'pos':(s.status==='canceled'?'neg':'mut')}">${s.status}</td><td style="text-align:right">${s.mrr}</td></tr>`
+  ).join('');
+
+  drawChart(d.trend);
+}
+function drawChart(trend) {
+  const svg = document.getElementById('chart');
+  const W = 900, H = 220, P = 30;
+  const vals = trend.map(p => p.mrr_cents);
+  const max = Math.max(...vals, 1), min = Math.min(...vals, 0);
+  const X = i => P + i * (W - 2*P) / Math.max(trend.length - 1, 1);
+  const Y = v => H - P - (v - min) / Math.max(max - min, 1) * (H - 2*P);
+  const pts = trend.map((p, i) => `${X(i).toFixed(1)},${Y(p.mrr_cents).toFixed(1)}`).join(' ');
+  const area = `${P},${H-P} ${pts} ${W-P},${H-P}`;
+  const money = c => '$' + (c/100).toFixed(0);
+  svg.innerHTML = `
+    <polygon points="${area}" fill="#3fb950" opacity="0.12"/>
+    <polyline points="${pts}" fill="none" stroke="#3fb950" stroke-width="2.5"/>
+    <text x="${P}" y="16">${money(max)}</text>
+    <text x="${P}" y="${H-8}">${money(min)}</text>
+    <text x="${W-P-70}" y="${H-8}">${trend[trend.length-1].date}</text>
+    <text x="${P}" y="${H-8}" dx="0" dy="-14">${trend[0].date}</text>`;
+}
+async function snapshot() {
+  const r = await fetch('/api/snapshot', {method: 'POST'});
+  const d = await r.json();
+  alert(d.ok ? 'Snapshot recorded.' : 'Failed: ' + d.error);
+}
+load();
+</script>
+</body>
+</html>

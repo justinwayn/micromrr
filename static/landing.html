@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MicroMRR — Free revenue metrics for indie SaaS</title>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: #0d1117; color: #e6edf3; line-height: 1.6; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 64px 24px; }
+  h1 { font-size: 2.6rem; line-height: 1.15; margin-bottom: 16px; }
+  h1 .green { color: #3fb950; }
+  p.lede { font-size: 1.2rem; color: #9aa4b2; margin-bottom: 32px; }
+  .cta { display: inline-block; background: #3fb950; color: #04120a; font-weight: 700;
+         padding: 14px 32px; border-radius: 10px; text-decoration: none; font-size: 1.1rem; }
+  .cta:hover { background: #56d364; }
+  .note { margin-top: 12px; color: #6e7681; font-size: .9rem; }
+  ul.feats { list-style: none; padding: 0; margin: 48px 0; }
+  ul.feats li { padding: 14px 0; border-bottom: 1px solid #21262d; font-size: 1.05rem; }
+  ul.feats li b { color: #3fb950; }
+  .compare { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 24px; margin: 32px 0; }
+  .compare .row { display: flex; justify-content: space-between; padding: 8px 0; }
+  .compare .strike { color: #6e7681; text-decoration: line-through; }
+  footer { margin-top: 64px; color: #6e7681; font-size: .85rem; }
+  footer a { color: #3fb950; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Your SaaS makes money.<br><span class="green">Finally see it clearly.</span></h1>
+  <p class="lede">Baremetrics costs $100/month. You're making $87/month. The math doesn't work —
+  so you built a spreadsheet and never opened it again.</p>
+  <p class="lede">MicroMRR plugs into your Stripe in one click and shows you the only numbers
+  that matter at this stage: MRR, churn, and LTV. <b>Free until you're actually making money.</b></p>
+  <a class="cta" href="/dashboard">Connect Stripe — see your real numbers</a>
+  <p class="note">Read-only access. We never touch your money. Demo data preloaded — no key needed to look around.</p>
+
+  <ul class="feats">
+    <li><b>One-click Stripe connect</b> — read-only, restricted key. Your money stays yours.</li>
+    <li><b>MRR breakdown</b> — new, expansion, contraction, churn. Know exactly what moved and why.</li>
+    <li><b>Churn alerts</b> — weekly digest catches leaks before they sink you.</li>
+    <li><b>LTV &amp; ARPA</b> — deterministic math from your Stripe data. No black boxes.</li>
+    <li><b>Free until $500 MRR</b> — if you're broke, so are we. $9/mo after that.</li>
+  </ul>
+
+  <div class="compare">
+    <div class="row"><span class="strike">Baremetrics — $100/mo</span><span>😬</span></div>
+    <div class="row"><span class="strike">ChartMogul — $119/mo</span><span>😬</span></div>
+    <div class="row"><span><b>MicroMRR — $0</b> until $500 MRR</span><span>🎉</span></div>
+  </div>
+
+  <a class="cta" href="/dashboard">Open the live demo dashboard</a>
+
+  <footer>
+    Built by <a href="https://github.com/justinwayn">Agent Army</a> · blueprint prod_1791465489 ·
+    zero-budget: no paid APIs, deterministic math, your data stays on your server.
+  </footer>
+</div>
+</body>
+</html>
