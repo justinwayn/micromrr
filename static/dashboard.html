@@ -81,7 +81,7 @@ function render(d) {
   const free = d.free_tier;
   document.getElementById('banner').innerHTML = free
     ? `<div class="banner">🎉 <b>Free tier</b> — ${d.mrr} of $500.00 cap. Free until you're actually making money.</div>`
-    : `<div class="banner paid">🚀 You've outgrown the free tier at ${d.mrr}! MicroMRR is $9/mo from here — paid from the revenue we helped you see.</div>`;
+    : `<a href="https://buy.stripe.com/4gM28rbVq4rd3o43wYdZ608" style="text-decoration:none;color:inherit"><div class="banner paid">🚀 You've outgrown the free tier at ${d.mrr}! MicroMRR is $9/mo from here — paid from the revenue we helped you see.</div></a>`;
 
   const m = d.movement_cents, mf = d.movement;
   document.getElementById('cards').innerHTML =
